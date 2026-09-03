@@ -34,18 +34,18 @@ node .\app.js
 Completed:
 
 - Created a Dockerfile for the Node.js API
-- Built Docker image: `opsdesk-api:1.0`
+- Built and tested Docker image `opsdesk-api:1.0`
 - Ran the application as a Docker container
 - Tested `/health` and incident creation through the container
 
 ## Run with Docker
 
 ```powershell
-docker build -t opsdesk-api:1.0 .
-docker run -d --name opsdesk-api -p 3001:3000 opsdesk-api:1.0
+docker build -t opsdesk-api:1.1 .
+docker run -d --name opsdesk-ui -p 3002:3000 opsdesk-api:1.1
 ```
 
-Open `http://localhost:3001/health` in a browser.
+Open `http://localhost:3002` in a browser.
 
 ## Phase 3: Kubernetes Deployment and Service
 
@@ -58,7 +58,7 @@ Completed:
 - Loaded the local Docker image into Minikube
 - Tested the API through the Kubernetes Service
 
-## Deploy to Kubernetes
+## Deploy to Kubernetes with Raw YAML
 
 ```powershell
 minikube image load opsdesk-api:1.0
@@ -91,15 +91,15 @@ Completed:
 ## Deploy with Helm
 
 ```powershell
-minikube image load opsdesk-api:1.0
+minikube image load opsdesk-api:1.1
 kubectl apply -f .\k8s\namespace.yaml
 helm lint .\helm\opsdesk
 helm upgrade --install opsdesk .\helm\opsdesk --namespace opsdesk --wait --timeout 2m
 helm list -n opsdesk
-kubectl port-forward service/opsdesk-api -n opsdesk 8083:80
+kubectl port-forward service/opsdesk-api -n opsdesk 8084:80
 ```
 
-Open `http://localhost:8083/health` in a browser.
+Open `http://localhost:8084` in a browser.
 
 ## Phase 5: Health Probes, Resource Limits, and Self-Healing
 
@@ -123,6 +123,26 @@ kubectl delete pod <pod-name> -n opsdesk
 kubectl get pods -n opsdesk
 ```
 
+## Phase 6: Browser Incident Dashboard
+
+Completed:
+
+- Added a browser-based OpsDesk dashboard
+- Added an incident creation form with severity selection
+- Added an incident table that loads data from the API
+- Tested incident creation through the browser UI
+- Built updated Docker image `opsdesk-api:1.1`
+- Upgraded the Helm release to revision 3
+- Verified the GUI through the Helm-managed Kubernetes Service
+
+## Access the Dashboard
+
+```powershell
+kubectl port-forward service/opsdesk-api -n opsdesk 8084:80
+```
+
+Open `http://localhost:8084` in a browser.
+
 ## Current Limitation
 
-Incident data is currently stored in application memory. PostgreSQL persistence, Ingress, and a browser-based user interface will be added in later phases.
+Incident data is currently stored in application memory. Because each Kubernetes Pod has separate memory, incidents may differ between replicas. PostgreSQL persistence and Ingress will be added in later phases.

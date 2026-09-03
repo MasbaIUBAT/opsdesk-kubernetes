@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpsDesk | Incident Management</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #172033;
+    }
+    header {
+      background: #18243d;
+      color: white;
+      padding: 28px;
+    }
+    header h1 { margin: 0 0 6px; }
+    header p { margin: 0; color: #b9c7e6; }
+    main {
+      max-width: 1000px;
+      margin: 28px auto;
+      padding: 0 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 3px 12px rgba(23, 32, 51, 0.1);
+    }
+    h2 { margin-top: 0; }
+    label { display: block; font-weight: bold; margin: 14px 0 6px; }
+    input, select, button {
+      width: 100%;
+      padding: 11px;
+      border-radius: 7px;
+      border: 1px solid #cbd5e1;
+      font-size: 15px;
+    }
+    button {
+      margin-top: 18px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background: #1d4ed8; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      text-align: left;
+      padding: 12px 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .badge {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    #message { margin-top: 12px; font-weight: bold; }
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>OpsDesk</h1>
+    <p>IT Incident & Service Request Management</p>
+  </header>
+
+  <main>
+    <div class="grid">
+      <section class="card">
+        <h2>Create Incident</h2>
+        <form id="incident-form">
+          <label for="title">Incident title</label>
+          <input id="title" required placeholder="Example: VPN login failure">
+
+          <label for="severity">Severity</label>
+          <select id="severity">
+            <option value="P1">P1 - Critical</option>
+            <option value="P2" selected>P2 - High</option>
+            <option value="P3">P3 - Medium</option>
+            <option value="P4">P4 - Low</option>
+          </select>
+
+          <button type="submit">Create Incident</button>
+          <p id="message"></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Open Incidents</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Severity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="incident-list"></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const list = document.getElementById("incident-list");
+    const message = document.getElementById("message");
+
+    async function loadIncidents() {
+      const response = await fetch("/api/incidents");
+      const incidents = await response.json();
+
+      list.innerHTML = incidents.map((incident) => `
+        <tr>
+          <td>${incident.id}</td>
+          <td>${incident.title}</td>
+          <td><span class="badge">${incident.severity}</span></td>
+          <td>${incident.status}</td>
+        </tr>
+      `).join("");
+    }
+
+    document.getElementById("incident-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const title = document.getElementById("title").value;
+      const severity = document.getElementById("severity").value;
+
+      const response = await fetch("/api/incidents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, severity })
+      });
+
+      if (response.ok) {
+        message.textContent = "Incident created successfully.";
+        document.getElementById("title").value = "";
+        await loadIncidents();
+      } else {
+        message.textContent = "Could not create incident.";
+      }
+    });
+
+    loadIncidents();
+  </script>
+</body>
+</html>
