@@ -54,3 +54,32 @@ A `POST /api/incidents` request successfully created a P2 incident from the Dock
 ## Current Limitation
 
 Incident data is currently stored in application memory. It will be moved to PostgreSQL in a later phase.
+
+## Phase 3: Kubernetes Deployment and Service
+
+Completed:
+
+- Created the `opsdesk` Kubernetes namespace
+- Deployed two replicas of the OpsDesk API
+- Used labels and selectors to connect the Deployment, Pods, and Service
+- Created a ClusterIP Service on port `80` that forwards traffic to container port `3000`
+- Loaded the local Docker image into Minikube
+- Tested the API through the Kubernetes Service at `http://localhost:8081/health`
+
+## Deploy to Kubernetes
+
+```powershell
+minikube image load opsdesk-api:1.0
+kubectl apply -f .\k8s\namespace.yaml
+kubectl apply -f .\k8s\deployment.yaml
+kubectl apply -f .\k8s\service.yaml
+```
+
+## Verify Kubernetes Resources
+
+```powershell
+kubectl get all -n opsdesk
+kubectl get pods -n opsdesk -l app.kubernetes.io/name=opsdesk-api --show-labels
+kubectl get endpoints opsdesk-api -n opsdesk
+kubectl port-forward service/opsdesk-api -n opsdesk 8081:80
+```
