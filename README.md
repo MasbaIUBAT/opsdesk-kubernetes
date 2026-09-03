@@ -81,24 +81,48 @@ kubectl port-forward service/opsdesk-api -n opsdesk 8081:80
 Completed:
 
 - Created a reusable Helm chart in `helm/opsdesk`
-- Added configurable `values.yaml` for replica count, image, and Service ports
+- Added configurable `values.yaml` for replica count, image, Service ports, probes, and resource limits
 - Created Helm templates for the OpsDesk Deployment and Service
 - Validated the chart with `helm lint`
 - Rendered Kubernetes YAML with `helm template`
 - Installed the chart as Helm release `opsdesk`
-- Verified Helm release revision 1 and tested the API through the Helm-managed Service
+- Verified Helm release revisions and tested the API through the Helm-managed Service
 
 ## Deploy with Helm
 
 ```powershell
+minikube image load opsdesk-api:1.0
+kubectl apply -f .\k8s\namespace.yaml
 helm lint .\helm\opsdesk
-helm install opsdesk .\helm\opsdesk --namespace opsdesk --wait --timeout 2m
+helm upgrade --install opsdesk .\helm\opsdesk --namespace opsdesk --wait --timeout 2m
 helm list -n opsdesk
-kubectl port-forward service/opsdesk-api -n opsdesk 8082:80
+kubectl port-forward service/opsdesk-api -n opsdesk 8083:80
 ```
 
-Open `http://localhost:8082/health` in a browser.
+Open `http://localhost:8083/health` in a browser.
+
+## Phase 5: Health Probes, Resource Limits, and Self-Healing
+
+Completed:
+
+- Added a liveness probe using `GET /health`
+- Added a readiness probe using `GET /ready`
+- Configured CPU request/limit: `50m` / `100m`
+- Configured memory request/limit: `64Mi` / `128Mi`
+- Upgraded the Helm release to revision 2
+- Verified probe and resource configuration with `kubectl describe deployment`
+- Tested `/health` and `/ready` through the Helm-managed Service
+- Deleted one Pod and verified that Kubernetes created a replacement Pod automatically
+
+## Verify Probes and Self-Healing
+
+```powershell
+kubectl describe deployment opsdesk-api -n opsdesk
+kubectl get pods -n opsdesk
+kubectl delete pod <pod-name> -n opsdesk
+kubectl get pods -n opsdesk
+```
 
 ## Current Limitation
 
-Incident data is currently stored in application memory. PostgreSQL persistence, probes, resource limits, and Ingress will be added in later phases.
+Incident data is currently stored in application memory. PostgreSQL persistence, Ingress, and a browser-based user interface will be added in later phases.
