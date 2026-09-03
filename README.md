@@ -1,6 +1,6 @@
 # OpsDesk
 
-OpsDesk is a production-style Node.js Incident and Service Request Management API. The project will be containerized with Docker and deployed to Kubernetes using Helm.
+OpsDesk is a production-style Node.js Incident and Service Request Management API. The project is containerized with Docker and deployed to Kubernetes using Helm.
 
 ## Phase 1: Local API and Health Checks
 
@@ -47,14 +47,6 @@ docker run -d --name opsdesk-api -p 3001:3000 opsdesk-api:1.0
 
 Open `http://localhost:3001/health` in a browser.
 
-## Docker Test Result
-
-A `POST /api/incidents` request successfully created a P2 incident from the Docker container.
-
-## Current Limitation
-
-Incident data is currently stored in application memory. It will be moved to PostgreSQL in a later phase.
-
 ## Phase 3: Kubernetes Deployment and Service
 
 Completed:
@@ -64,7 +56,7 @@ Completed:
 - Used labels and selectors to connect the Deployment, Pods, and Service
 - Created a ClusterIP Service on port `80` that forwards traffic to container port `3000`
 - Loaded the local Docker image into Minikube
-- Tested the API through the Kubernetes Service at `http://localhost:8081/health`
+- Tested the API through the Kubernetes Service
 
 ## Deploy to Kubernetes
 
@@ -83,3 +75,30 @@ kubectl get pods -n opsdesk -l app.kubernetes.io/name=opsdesk-api --show-labels
 kubectl get endpoints opsdesk-api -n opsdesk
 kubectl port-forward service/opsdesk-api -n opsdesk 8081:80
 ```
+
+## Phase 4: Helm Chart Packaging
+
+Completed:
+
+- Created a reusable Helm chart in `helm/opsdesk`
+- Added configurable `values.yaml` for replica count, image, and Service ports
+- Created Helm templates for the OpsDesk Deployment and Service
+- Validated the chart with `helm lint`
+- Rendered Kubernetes YAML with `helm template`
+- Installed the chart as Helm release `opsdesk`
+- Verified Helm release revision 1 and tested the API through the Helm-managed Service
+
+## Deploy with Helm
+
+```powershell
+helm lint .\helm\opsdesk
+helm install opsdesk .\helm\opsdesk --namespace opsdesk --wait --timeout 2m
+helm list -n opsdesk
+kubectl port-forward service/opsdesk-api -n opsdesk 8082:80
+```
+
+Open `http://localhost:8082/health` in a browser.
+
+## Current Limitation
+
+Incident data is currently stored in application memory. PostgreSQL persistence, probes, resource limits, and Ingress will be added in later phases.

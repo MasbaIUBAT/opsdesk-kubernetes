@@ -1,0 +1,11 @@
+replicaCount: 2
+
+image:
+  repository: opsdesk-api
+  tag: "1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
