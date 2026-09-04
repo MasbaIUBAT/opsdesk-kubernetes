@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: opsdesk-api
-  tag: "1.1"
+  tag: "1.2"
   pullPolicy: IfNotPresent
 
 service:
@@ -31,3 +31,6 @@ probes:
     periodSeconds: 5
     timeoutSeconds: 2
     failureThreshold: 3
+
+database:
+  existingSecret: opsdesk-db
